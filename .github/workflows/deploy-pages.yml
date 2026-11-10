@@ -1,0 +1,37 @@
+name: Publish campaign review
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# The workflow can read this repository and publish its static Pages artifact.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Read review files
+        uses: actions/checkout@v6
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Unpack the verified static dashboard
+        run: unzip -q review-site.zip -d _site
+      - name: Upload the dashboard
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+      - name: Publish the dashboard
+        id: deployment
+        uses: actions/deploy-pages@v4
